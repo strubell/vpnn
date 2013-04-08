@@ -8,7 +8,7 @@
 #ifndef ATTENTIONNET_H_
 #define ATTENTIONNET_H_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <mpreal.h>
 #include "ElmanNet.h"
 #include "NeuralNet.h"

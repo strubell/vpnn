@@ -8,7 +8,7 @@
 #ifndef ELMANNET_H_
 #define ELMANNET_H_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <mpreal.h>
 #include "NeuralNet.h"
 

@@ -8,7 +8,7 @@
 #ifndef NEURALNET_H_
 #define NEURALNET_H_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <mpreal.h>
 
 using namespace mpfr;

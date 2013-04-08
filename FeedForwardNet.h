@@ -2,7 +2,7 @@
 #ifndef FEEDFORWARDNET_H_
 #define FEEDFORWARDNET_H_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <mpreal.h>
 #include "NeuralNet.h"
 
