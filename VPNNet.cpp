@@ -164,16 +164,16 @@ void testAttentionNet(){
 	std::cout.precision(bits2digits(initialPrecision));
 
 	/* Training data hard coded for now */
-	int inputSize = 3;
-	int hiddenSize = 4;
-	int outputSize = 3;
-	int sequenceLen = 3;
-	int trainingDataLen = 2;
-	int testingDataLen = trainingDataLen;
-	int numIterations = 500;
-	mpreal eta = 4.0;
-	mpreal errorTol = 1e-2;
-	mpreal desiredAccuracy = 0.8;
+	int sequenceLen = 10;
+	int inputSize = sequenceLen + 1;	// to encode distance to attend
+	int hiddenSize = 20; 				// arbitrary guess
+	int outputSize = 1;
+	int trainingDataLen = static_cast<int>(std::pow(2.0,inputSize-3)); // also sort of arbitrary
+	int testingDataLen = static_cast<int>(std::pow(2.0,inputSize)-std::pow(2.0,inputSize-3));  // the rest
+	int numIterations = 500;			// also arbitrary
+	mpreal eta = 4.0;					// ...
+	mpreal errorTol = 1e-2;				// ...
+	mpreal desiredAccuracy = 0.8;		// ...
 
 	MPMatrix trainingIn(trainingDataLen, sequenceLen);
 	MPMatrix trainingOut(trainingDataLen, sequenceLen);
