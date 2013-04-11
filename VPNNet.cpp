@@ -156,7 +156,8 @@ void testElmanNet(){
 }
 
 void testAttentionNet(){
-	int i, j;
+	int i, j, r;
+	int buff[INT_BITS];
 
 	/* Set up initial precision */
 	unsigned long initialPrecision = 32;
@@ -165,41 +166,81 @@ void testAttentionNet(){
 
 	/* Training data hard coded for now */
 	int sequenceLen = 10;
+
+	int attentionVal = 0;	
+	int attentionLoc = static_cast<int>(std::floor((1+attentionVal)*sequenceLen/3));
+	
 	int inputSize = sequenceLen + 1;	// to encode distance to attend
 	int hiddenSize = 20; 				// arbitrary guess
 	int outputSize = 1;
-	int trainingDataLen = static_cast<int>(std::pow(2.0,inputSize-3)); // also sort of arbitrary
-	int testingDataLen = static_cast<int>(std::pow(2.0,inputSize)-std::pow(2.0,inputSize-3));  // the rest
+	int allDataLen = static_cast<int>(std::pow(2.0,sequenceLen));
+	int trainingDataLen = static_cast<int>(std::pow(2.0,sequenceLen-3)); // also sort of arbitrary
+	int testingDataLen = allDataLen - static_cast<int>(std::pow(2.0,inputSize-3));  // the rest
 	int numIterations = 500;			// also arbitrary
 	mpreal eta = 4.0;					// ...
 	mpreal errorTol = 1e-2;				// ...
 	mpreal desiredAccuracy = 0.8;		// ...
 
-	MPMatrix trainingIn(trainingDataLen, sequenceLen);
-	MPMatrix trainingOut(trainingDataLen, sequenceLen);
+	MPMatrix trainingIn(trainingDataLen, inputSize);
+	MPMatrix trainingOut(trainingDataLen, outputSize);
 	MPMatrix trainingErr(numIterations, outputSize);
 
-	MPMatrix testingIn(testingDataLen, sequenceLen);
-	MPMatrix testingOut(testingDataLen, sequenceLen);
+	MPMatrix testingIn(testingDataLen, inputSize);
+	MPMatrix testingOut(testingDataLen, outputSize);
 	MPMatrix testingErr(numIterations, outputSize);
+	
+	MPMatrix allInputData(allDataLen, inputSize);
+	MPMatrix allOutputData(allDataLen, outputSize);
+	
+	std::cout << "Training samples: " << trainingDataLen << std::endl;
+	std::cout << "Testing samples: " << testingDataLen << std::endl;
 
-	trainingIn << 0, 1, 2,
-				  1, 0, 2;
-	trainingOut << 1, 2, 0,
-				   0, 2, 1;
-
-	testingIn << 0, 1, 2,
-				  1, 0, 2;
-	testingOut << 1, 2, 0,
-				   0, 2, 1;
-
-	printf("Training on input: \n");
+	for(i = 0; i < allDataLen; ++i){
+		intToBinary(i, buff);
+		allInputData(i,0) = attentionVal;	// set attention bit
+		for(j = 1; j < sequenceLen; ++j){
+			allInputData(i,j) = buff[j];
+			if(j == attentionLoc){
+				/* NOTE/TODO: hard coded for one output! */
+				allOutputData(i,0) = buff[j];
+			}
+		} 
+	}
+	
+	/* Randomly select training data */
+	int used[allDataLen];
+	for(i = 0; i < allDataLen; ++i)
+		used[i] = 0;
 	for(i = 0; i < trainingDataLen; ++i){
-		for(j = 0; j < sequenceLen; j++){
+		do{
+			r = rand() % allDataLen;
+		}while(used[r]);
+		used[r] = 1;
+		for(j = 0; j < inputSize; ++j)
+			trainingIn(i,j) = allInputData(r,j);
+		/* NOTE/TODO: hard coded for one output! */
+		trainingOut(i,0) = allOutputData(i,0);
+	}
+	
+	/* Use rest as testing data */
+	int k = 0;
+	for(i = 0; i < allDataLen; ++i){
+		if(!used[i]){
+			for(j = 0; j < inputSize; ++j)
+				testingIn(k,j) = allInputData(i,j);
+			/* NOTE/TODO: hard coded for one output! */
+			testingOut(k,0) = allOutputData(i,0);
+			k++;
+		}
+	}
+
+	std::cout << "Training on input: " << std::endl;
+	for(i = 0; i < trainingDataLen; ++i){
+		for(j = 0; j < inputSize; ++j){
 			std::cout << trainingIn(i,j);
 		}
 		std::cout << " -> ";
-		for(j = 0; j < sequenceLen; ++j){
+		for(j = 0; j < outputSize; ++j){
 			std::cout << trainingOut(i,j);
 		}
 		std::cout << std::endl;
