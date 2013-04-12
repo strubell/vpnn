@@ -175,7 +175,7 @@ void testAttentionNet(){
 	int outputSize = 1;
 	int allDataLen = static_cast<int>(std::pow(2.0,sequenceLen));
 	int trainingDataLen = static_cast<int>(std::pow(2.0,sequenceLen-3)); // also sort of arbitrary
-	int testingDataLen = allDataLen - static_cast<int>(std::pow(2.0,inputSize-3));  // the rest
+	int testingDataLen = allDataLen - static_cast<int>(std::pow(2.0,sequenceLen-3));  // the rest
 	int numIterations = 500;			// also arbitrary
 	mpreal eta = 4.0;					// ...
 	mpreal errorTol = 1e-2;				// ...
@@ -190,24 +190,25 @@ void testAttentionNet(){
 	MPMatrix testingErr(numIterations, outputSize);
 	
 	MPMatrix allInputData(allDataLen, inputSize);
-	MPMatrix allOutputData(allDataLen, outputSize);
+	//MPMatrix allOutputData(allDataLen, outputSize);
 	
 	std::cout << "Training samples: " << trainingDataLen << std::endl;
 	std::cout << "Testing samples: " << testingDataLen << std::endl;
+	std::cout << "Attending to location: " << attentionLoc << std::endl;
 
+	std::cout << "Generating all data..." << std::endl;
 	for(i = 0; i < allDataLen; ++i){
 		intToBinary(i, buff);
 		allInputData(i,0) = attentionVal;	// set attention bit
-		for(j = 1; j < sequenceLen; ++j){
-			allInputData(i,j) = buff[j];
-			if(j == attentionLoc){
-				/* NOTE/TODO: hard coded for one output! */
-				allOutputData(i,0) = buff[j];
-			}
+		for(j = 1; j < sequenceLen+1; ++j){
+			allInputData(i,j) = buff[INT_BITS-j];
 		} 
+		/* NOTE/TODO: hard coded for one output! */
+		//allOutputData(i,0) = allInputData(i,attentionLoc);
 	}
 	
 	/* Randomly select training data */
+	std::cout << "Selecting random training data..." << std::endl;
 	int used[allDataLen];
 	for(i = 0; i < allDataLen; ++i)
 		used[i] = 0;
@@ -219,17 +220,18 @@ void testAttentionNet(){
 		for(j = 0; j < inputSize; ++j)
 			trainingIn(i,j) = allInputData(r,j);
 		/* NOTE/TODO: hard coded for one output! */
-		trainingOut(i,0) = allOutputData(i,0);
+		trainingOut(i,0) = trainingIn(i,attentionLoc);
 	}
 	
 	/* Use rest as testing data */
+	std::cout << "Allocating rest as testing data..." << std::endl;
 	int k = 0;
 	for(i = 0; i < allDataLen; ++i){
 		if(!used[i]){
 			for(j = 0; j < inputSize; ++j)
 				testingIn(k,j) = allInputData(i,j);
 			/* NOTE/TODO: hard coded for one output! */
-			testingOut(k,0) = allOutputData(i,0);
+			testingOut(k,0) = testingIn(k,attentionLoc);
 			k++;
 		}
 	}
@@ -258,7 +260,8 @@ void testAttentionNet(){
 	attentionNet.test(testingIn, testingOut, testingErr);
 }
 
-/* Convert an integer to an array of integers representing its bits */
+/* Convert an integer to an array of integers representing its bits;
+   Least significant bits at high indices */
 int *intToBinary(int a, int *buff){
 	int i;
 	for(i = INT_BITS-1; i >= 0; i--){
