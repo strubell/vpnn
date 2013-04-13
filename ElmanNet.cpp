@@ -36,7 +36,7 @@ MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &e
 }
 
 MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &error, mpreal eta){
-	int j;
+	//int j;
 	MPVector hidOuts(this->numOutput);
 	MPVector outputs(this->numOutput);
 	MPVector outErrors(this->numOutput);
@@ -51,40 +51,49 @@ MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &
 	// reset outputs of context units
 	contextUnits = MPVector::Constant(this->numHidden, 0.5);
 
-	for(j = 0; j < inputVal.rows(); ++j){
+	//for(j = 0; j < inputVal.rows(); ++j){
 
 		/* Convert input / desired output to unary vectors */
-		input << contextUnits, MPRealToUnary(inputVal(j), unaryInput);
-		desiredOut << MPRealToUnary(desiredOutput(j), unaryOutput);
+		// TODO make this consistent with ElmanNet test code (i.e.
+		// do this conversion outside this function!)
+		//cout << "Converting input/output to unary vectors" << endl;
+		//input << contextUnits, MPRealToUnary(inputVal(j), unaryInput);
+		//desiredOut << MPRealToUnary(desiredOutput(j), unaryOutput);
+		input << contextUnits, inputVal;
+		desiredOut << desiredOutput;
 
 		/* Forward propagation */
+		//cout << "Forward propagation" << endl;
 		hidOuts = (this->hiddenWeights.rowwise()*input.transpose()).rowwise().sum();
 		hidOuts = sigmoid(hidOuts);
 		outputs = this->outputWeights.matrix()*hidOuts.matrix();
 		outputs = sigmoid(outputs);
 
 		/* Determine errors and deltas */
+		//cout << "Determining errors, deltas" << endl;
 		outErrors = desiredOut - outputs;
 		outDelta = outErrors*(outputs*(1.0-outputs));
 		hidDelta = (hidOuts*(1.0-hidOuts));
 		hidDelta *= (this->outputWeights.matrix().transpose()*outDelta.matrix()).array();
 
 		/* Update weights */
+		//cout << "Updating weights" << endl;
 		outputWeights += eta*(hidOuts.matrix()*outDelta.transpose().matrix()).transpose().array();
 		hiddenWeights += eta*(hidDelta.matrix()*input.transpose().matrix()).array();
 
 		contextUnits = hidOuts;
 
 		/* Record squared error */
-		error(j) = outErrors.matrix().dot(outErrors.matrix());
-	}
+		//cout << "Recording error" << endl;
+		error << outErrors.matrix().dot(outErrors.matrix());
+	//}
 	return error;
 }
 
 /* Tests network on given input and output data; Returns
  * an array containing errors */
 MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
-	int i, j;
+	int i;//, j;
 	mpreal accuracy = 0.0;
 	MPVector hidOuts(this->numOutput);
 	MPVector outs(this->numOutput);
@@ -97,13 +106,19 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 	MPVector::Index maxIdx;
 	for(i = 0; i < inputs.rows(); ++i){
 		contextUnits = MPVector::Constant(this->numHidden, 0.5);
-		for(j = 0; j < inputs.cols(); ++j){
+		//for(j = 0; j < inputs.cols(); ++j){
 			/* Convert input / desired output to unary vectors */
 
-			input << contextUnits, MPRealToUnary(inputs(i,j), unaryInput);
-			desiredOut << MPRealToUnary(outputs(i,j), unaryOutput);
+			//TODO make sure this is also consistent with ElmanNet test in main
+			//input << contextUnits, MPRealToUnary(inputs(i,j), unaryInput);
+			//desiredOut << MPRealToUnary(outputs(i,j), unaryOutput);
+			cout << "Setting up input/output" << endl;
+			cout << input.size() << "=" << contextUnits.size() << "+" << inputs.cols() << endl;
+			input << contextUnits, inputs.row(i);
+			desiredOut << outputs.row(i);
 
 			/* Forward propagation */
+			cout << "Forward propagation" << endl;
 			hidOuts = (this->hiddenWeights.rowwise()*input.transpose()).rowwise().sum();
 			hidOuts = sigmoid(hidOuts);
 			outs = this->outputWeights.matrix()*hidOuts.matrix();
@@ -125,14 +140,14 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 			printMPMatrix(desiredOut.transpose());
 
 			/* Record mean squared error */
-			errors(i,j) = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
+			errors(i) = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
 
 			outs.maxCoeff(&maxIdx);
-			if(maxIdx == outputs(i,j))
+			if(maxIdx == outputs(i))
 				accuracy++;
 
-			cout << "Mean squared error: " << errors(i,j) << "\n\n";
-		}
+			cout << "Mean squared error: " << errors(i) << "\n\n";
+		//}
 	}
 	cout << "Overall accuracy: " << (accuracy/(inputs.cols()*inputs.rows()))*100 << "%\n";
 	return errors;

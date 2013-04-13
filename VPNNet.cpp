@@ -252,9 +252,10 @@ void testAttentionNet(){
 	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy);
 	attentionNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations);
 
+	/*
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
-	}
+	}*/
 
 	/* Test network on testing data */
 	attentionNet.test(testingIn, testingOut, testingErr);
