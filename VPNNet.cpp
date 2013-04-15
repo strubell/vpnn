@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stdlib.h>
 #include "FeedForwardNet.h"
 #include "ElmanNet.h"
 #include "AttentionNet.h"
@@ -12,29 +13,40 @@
 int *intToBinary(int a, int *buff);
 
 /* Test feed forward network (XOR) */
-void testFeedForwardNet();
+void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbose);
 
 /* Test Elman network (couple of sequences) */
-void testElmanNet();
+void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose);
 
-void testAttentionNet(unsigned long prec, std::ofstream &outputFile);
+void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile, int verbose);
 
-int main(int argc, const char* argv[]){
-	int i;
+int main(int argc, char **argv){
+	int c;
+	int verbose = 0;
+	int setSize = 10;
 	unsigned long precision = 32;
 	std::streambuf * buf = std::cout.rdbuf();
 	std::ofstream of;
 	
-	i = 1;
-	while(i < argc){
-		if(argv[i] == "-p"){
-			precision = atol(argv[i+1]);
-			i += 2;
-		}
-		else if(argv[i] == "-o"){
-			of.open(argv[i+1]);
+	while((c = getopt(argc, argv, "p:o:s:v")) != -1){
+		switch(c){
+		case 'p':
+			precision = atol(optarg);
+			break;
+		case 'o':
+			of.open(optarg);
 			buf = of.rdbuf();
-			i += 2;
+			break;
+		case 's':
+			setSize = atoi(optarg);
+			break;
+		case 'v':
+			verbose = 1;
+			break;
+		default:
+			std::cout << "Unknown option character " << optopt << std::endl;
+			std::exit(1);
+			break;
 		}
 	}
 	
@@ -42,12 +54,12 @@ int main(int argc, const char* argv[]){
 
 	//testFeedForwardNet();
 	//testElmanNet();
-	testAttentionNet(precision, outputFile);
+	testAttentionNet(precision, setSize, outputFile, verbose);
 
 	return 0;
 }
 
-void testFeedForwardNet(){
+void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbose){
 	int i, j;
 
 	/* Set up initial precision */
@@ -105,17 +117,17 @@ void testFeedForwardNet(){
 
 	/* Train network on training data */
 	FeedForwardNet ffNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol);
-	ffNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations);
+	ffNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
 
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
 	}
 
 	/* Test network on testing data */
-	ffNet.test(testingIn, testingOut, testingErr);
+	ffNet.test(testingIn, testingOut, testingErr, verbose);
 }
 
-void testElmanNet(){
+void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose){
 	int i, j;
 
 	/* Set up initial precision */
@@ -166,17 +178,17 @@ void testElmanNet(){
 
 	/* Train network on training data */
 	ElmanNet elNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol);
-	elNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations);
+	elNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
 
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
 	}
 
 	/* Test network on testing data */
-	elNet.test(testingIn, testingOut, testingErr);
+	elNet.test(testingIn, testingOut, testingErr, verbose);
 }
 
-void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
+void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile, int verbose){
 	int i, j, r;
 	int buff[INT_BITS];
 
@@ -186,7 +198,7 @@ void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 	std::cout.precision(bits2digits(initialPrecision));
 
 	/* Training data hard coded for now */
-	int sequenceLen = 10;
+	int sequenceLen = setSize;
 
 	int attentionVal = 0;	
 	int attentionLoc = static_cast<int>(std::floor((1+attentionVal)*sequenceLen/3));
@@ -208,16 +220,17 @@ void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 
 	MPMatrix testingIn(testingDataLen, inputSize);
 	MPMatrix testingOut(testingDataLen, outputSize);
-	MPMatrix testingErr(numIterations, outputSize);
+	MPMatrix testingErr(testingDataLen, outputSize);
 	
 	MPMatrix allInputData(allDataLen, inputSize);
 	//MPMatrix allOutputData(allDataLen, outputSize);
 	
-	std::cout << "Training samples: " << trainingDataLen << std::endl;
-	std::cout << "Testing samples: " << testingDataLen << std::endl;
-	std::cout << "Attending to location: " << attentionLoc << std::endl;
-
-	std::cout << "Generating all data..." << std::endl;
+	if(verbose){
+		std::cout << "Training samples: " << trainingDataLen << std::endl;
+		std::cout << "Testing samples: " << testingDataLen << std::endl;
+		std::cout << "Attending to location: " << attentionLoc << std::endl;
+		std::cout << "Generating all data..." << std::endl;
+	}
 	for(i = 0; i < allDataLen; ++i){
 		intToBinary(i, buff);
 		allInputData(i,0) = attentionVal;	// set attention bit
@@ -229,7 +242,8 @@ void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 	}
 	
 	/* Randomly select training data */
-	std::cout << "Selecting random training data..." << std::endl;
+	if(verbose)
+		std::cout << "Selecting random training data..." << std::endl;
 	int used[allDataLen];
 	for(i = 0; i < allDataLen; ++i)
 		used[i] = 0;
@@ -245,7 +259,8 @@ void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 	}
 	
 	/* Use rest as testing data */
-	std::cout << "Allocating rest as testing data..." << std::endl;
+	if(verbose)
+		std::cout << "Allocating rest as testing data..." << std::endl;
 	int k = 0;
 	for(i = 0; i < allDataLen; ++i){
 		if(!used[i]){
@@ -257,42 +272,46 @@ void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 		}
 	}
  
-	std::cout << "Training on input: " << std::endl;
-	for(i = 0; i < trainingDataLen; ++i){
-		for(j = 0; j < inputSize; ++j){
-			std::cout << trainingIn(i,j);
+	if(verbose){
+		std::cout << "Training on input: " << std::endl;
+		for(i = 0; i < trainingDataLen; ++i){
+			for(j = 0; j < inputSize; ++j){
+				std::cout << trainingIn(i,j);
+			}
+			std::cout << " -> ";
+			for(j = 0; j < outputSize; ++j){
+				std::cout << trainingOut(i,j);
+			}
+			std::cout << std::endl;
 		}
-		std::cout << " -> ";
-		for(j = 0; j < outputSize; ++j){
-			std::cout << trainingOut(i,j);
-		}
-		std::cout << std::endl;
 	}
 
 
 	/* Train network on training data */
 	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy);
-	attentionNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations);
+	attentionNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
 
 	/*
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
 	}*/
 	
-	std::cout << "Testing on input: " << std::endl;
-	for(i = 0; i < testingDataLen; ++i){
-		for(j = 0; j < inputSize; ++j){
-			std::cout << testingIn(i,j);
+	if(verbose){
+		std::cout << "Testing on input: " << std::endl;
+		for(i = 0; i < testingDataLen; ++i){
+			for(j = 0; j < inputSize; ++j){
+				std::cout << testingIn(i,j);
+			}
+			std::cout << " -> ";
+			for(j = 0; j < outputSize; ++j){
+				std::cout << testingOut(i,j);
+			}
+			std::cout << std::endl;
 		}
-		std::cout << " -> ";
-		for(j = 0; j < outputSize; ++j){
-			std::cout << testingOut(i,j);
-		}
-		std::cout << std::endl;
 	}
 
 	/* Test network on testing data */
-	attentionNet.test(testingIn, testingOut, testingErr);
+	attentionNet.test(testingIn, testingOut, testingErr, verbose);
 	
 	for(i = 0; i < testingDataLen; ++i){
 		outputFile << testingErr(i) << std::endl;

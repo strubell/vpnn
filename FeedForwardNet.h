@@ -22,13 +22,13 @@ public:
 	/* Trains network on given input and output data for specified
 	 * number of iterations. Returns an array containing error
 	 * measured at each iteration */
-	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters);
-	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta);
+	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose);
+	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose);
 
 
 	/* Tests network on given input and output data; Returns
 	 * an array containing errors */
-	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors);
+	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
 
 	/* Destructor */
 	~FeedForwardNet();

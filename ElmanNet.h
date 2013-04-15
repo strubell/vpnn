@@ -25,14 +25,14 @@ private:
 public:
 	ElmanNet(int numInput, int numHidden, int numOutput, unsigned long initialPrecision, mpreal errorTol);
 
-	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors,  mpreal eta, int iters);
-	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta);
+	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors,  mpreal eta, int iters, int verbose);
+	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose);
 
 	MPVector &MPRealToUnary(mpreal val, MPVector &arr);
 
 	/* Tests network on given input and output data; Returns
 	 * an array containing errors */
-	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors);
+	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
 
 	~ElmanNet();
 };

@@ -20,7 +20,7 @@ ElmanNet::ElmanNet(int numInput, int numHidden, int numOutput, unsigned long ini
 /* Trains network on given input and output data for specified
  * number of iterations. Returns an array containing error
  * measured at each iteration */
-MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters){
+MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose){
 	int i, r;
 	MPVector input, output, error;
 	for(i = 0; i < iters; ++i){
@@ -30,12 +30,12 @@ MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &e
 		input = MPVector(inputs.row(r));
 		output = MPVector(desiredOutputs.row(r));
 		error = MPVector(errors.row(i));
-		errors.row(i) << train(input, output, error, eta).transpose();
+		errors.row(i) << train(input, output, error, eta, verbose).transpose();
 	}
 	return errors;
 }
 
-MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &error, mpreal eta){
+MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose){
 	//int j;
 	MPVector hidOuts(this->numOutput);
 	MPVector outputs(this->numOutput);
@@ -92,7 +92,7 @@ MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &
 
 /* Tests network on given input and output data; Returns
  * an array containing errors */
-MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
+MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose){
 	int i;//, j;
 	mpreal accuracy = 0.0;
 	MPVector hidOuts(this->numOutput);
@@ -131,14 +131,16 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 			/* Update context units */
 			contextUnits = hidOuts;
 
-			cout << "Inputs: " << endl;
-			printMPMatrix(temp.transpose());
+			if(verbose){
+				cout << "Inputs: " << endl;
+				printMPMatrix(temp.transpose());
 
-			cout << "Outputs: " << endl;
-			printMPMatrix(outs.transpose());
+				cout << "Outputs: " << endl;
+				printMPMatrix(outs.transpose());
 
-			cout << "Desired: " << endl;
-			printMPMatrix(desiredOut.transpose());
+				cout << "Desired: " << endl;
+				printMPMatrix(desiredOut.transpose());
+			}
 
 			/* Record mean squared error */
 			errors(i) = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
@@ -147,10 +149,12 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 			if(maxIdx == outputs(i))
 				accuracy++;
 
-			cout << "Mean squared error: " << errors(i) << "\n\n";
+			if(verbose)
+				cout << "Mean squared error: " << errors(i) << "\n\n";
 		//}
 	}
-	cout << "Overall accuracy: " << (accuracy/(inputs.cols()*inputs.rows()))*100 << "%\n";
+	if(verbose)
+		cout << "Overall accuracy: " << (accuracy/(inputs.cols()*inputs.rows()))*100 << "%\n";
 	return errors;
 }
 

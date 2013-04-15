@@ -21,7 +21,7 @@ FeedForwardNet::FeedForwardNet(int numInput, int numHidden, int numOutput, unsig
 /* Trains network on given input and output data for specified
  * number of iterations. Returns an array containing error
  * measured at each iteration */
-MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters){
+MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose){
 	int i, r;
 	MPVector input(this->numInput);
 	MPVector desiredOut(this->numOutput);
@@ -34,12 +34,12 @@ MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMat
 		input = inputs.row(r);
 		desiredOut = desiredOutputs.row(r);
 		error = errors.row(i);
-		errors.row(i) << train(input, desiredOut, error, eta).transpose();
+		errors.row(i) << train(input, desiredOut, error, eta, verbose).transpose();
 	}
 	return errors;
 }
 
-MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta){
+MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose){
 	int i;
 	MPVector hidOuts(this->numOutput);
 	MPVector outputs(this->numOutput);
@@ -73,7 +73,7 @@ MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVecto
 
 /* Tests network on given input and output data; Returns
  * an array containing errors */
-MPMatrix FeedForwardNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
+MPMatrix FeedForwardNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose){
 	int i;
 	mpreal accuracy = 0.0;
 	MPVector hidOuts(this->numOutput);
@@ -95,23 +95,27 @@ MPMatrix FeedForwardNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &err
 		/* Determine errors */
 		outErrors = desiredOut - outs;
 
-		cout << "Inputs: " << endl;
-		printMPMatrix(input.transpose());
+		if(verbose){
+			cout << "Inputs: " << endl;
+			printMPMatrix(input.transpose());
 
-		cout << "Outputs: " << endl;
-		printMPMatrix(outs.transpose());
+			cout << "Outputs: " << endl;
+			printMPMatrix(outs.transpose());
 
-		cout << "Desired: " << endl;
-		printMPMatrix(desiredOut.transpose());
+			cout << "Desired: " << endl;
+			printMPMatrix(desiredOut.transpose());
+		}
 
 		/* Record squared error */
 		errors(i,0) = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
-		cout << "Mean squared error: " << errors(i,0) << "\n\n";
+		if(verbose)
+			cout << "Mean squared error: " << errors(i,0) << "\n\n";
 
 		if(errors(i,0) < this->errorTol)
 			accuracy++;
 	}
-	cout << "Overall accuracy: " << (accuracy/inputs.rows())*100 << "%\n";
+	if(verbose)
+		cout << "Overall accuracy: " << (accuracy/inputs.rows())*100 << "%\n";
 	return errors;
 }
 
