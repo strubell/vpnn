@@ -112,13 +112,14 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 			//TODO make sure this is also consistent with ElmanNet test in main
 			//input << contextUnits, MPRealToUnary(inputs(i,j), unaryInput);
 			//desiredOut << MPRealToUnary(outputs(i,j), unaryOutput);
-			cout << "Setting up input/output" << endl;
-			cout << input.size() << "=" << contextUnits.size() << "+" << inputs.cols() << endl;
-			input << contextUnits, inputs.row(i);
+			//cout << "Setting up input/output" << endl;
+			//cout << input.size() << "=" << contextUnits.size() << "+" << inputs.row(i).size() << endl;
+			MPVector temp = inputs.row(i);
+			input << contextUnits, temp;
 			desiredOut << outputs.row(i);
 
 			/* Forward propagation */
-			cout << "Forward propagation" << endl;
+			//cout << "Forward propagation" << endl;
 			hidOuts = (this->hiddenWeights.rowwise()*input.transpose()).rowwise().sum();
 			hidOuts = sigmoid(hidOuts);
 			outs = this->outputWeights.matrix()*hidOuts.matrix();
@@ -131,7 +132,7 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors){
 			contextUnits = hidOuts;
 
 			cout << "Inputs: " << endl;
-			printMPMatrix(unaryInput.transpose());
+			printMPMatrix(temp.transpose());
 
 			cout << "Outputs: " << endl;
 			printMPMatrix(outs.transpose());

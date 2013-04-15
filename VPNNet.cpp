@@ -1,5 +1,7 @@
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "FeedForwardNet.h"
 #include "ElmanNet.h"
 #include "AttentionNet.h"
@@ -15,13 +17,32 @@ void testFeedForwardNet();
 /* Test Elman network (couple of sequences) */
 void testElmanNet();
 
-void testAttentionNet();
+void testAttentionNet(unsigned long prec, std::ofstream &outputFile);
 
-int main(int argc, char **argv) {
+int main(int argc, const char* argv[]){
+	int i;
+	unsigned long precision = 32;
+	std::streambuf * buf = std::cout.rdbuf();
+	std::ofstream of;
+	
+	i = 1;
+	while(i < argc){
+		if(argv[i] == "-p"){
+			precision = atol(argv[i+1]);
+			i += 2;
+		}
+		else if(argv[i] == "-o"){
+			of.open(argv[i+1]);
+			buf = of.rdbuf();
+			i += 2;
+		}
+	}
+	
+	std::ostream outputFile(buf);
 
 	//testFeedForwardNet();
 	//testElmanNet();
-	testAttentionNet();
+	testAttentionNet(precision, outputFile);
 
 	return 0;
 }
@@ -155,12 +176,12 @@ void testElmanNet(){
 	elNet.test(testingIn, testingOut, testingErr);
 }
 
-void testAttentionNet(){
+void testAttentionNet(unsigned long prec, std::ofstream &outputFile){
 	int i, j, r;
 	int buff[INT_BITS];
 
 	/* Set up initial precision */
-	unsigned long initialPrecision = 32;
+	unsigned long initialPrecision = prec;
 	mpreal::set_default_prec(initialPrecision);
 	std::cout.precision(bits2digits(initialPrecision));
 
@@ -235,7 +256,7 @@ void testAttentionNet(){
 			k++;
 		}
 	}
-
+ 
 	std::cout << "Training on input: " << std::endl;
 	for(i = 0; i < trainingDataLen; ++i){
 		for(j = 0; j < inputSize; ++j){
@@ -248,6 +269,7 @@ void testAttentionNet(){
 		std::cout << std::endl;
 	}
 
+
 	/* Train network on training data */
 	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy);
 	attentionNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations);
@@ -256,9 +278,25 @@ void testAttentionNet(){
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
 	}*/
+	
+	std::cout << "Testing on input: " << std::endl;
+	for(i = 0; i < testingDataLen; ++i){
+		for(j = 0; j < inputSize; ++j){
+			std::cout << testingIn(i,j);
+		}
+		std::cout << " -> ";
+		for(j = 0; j < outputSize; ++j){
+			std::cout << testingOut(i,j);
+		}
+		std::cout << std::endl;
+	}
 
 	/* Test network on testing data */
 	attentionNet.test(testingIn, testingOut, testingErr);
+	
+	for(i = 0; i < testingDataLen; ++i){
+		outputFile << testingErr(i) << std::endl;
+	}
 }
 
 /* Convert an integer to an array of integers representing its bits;
