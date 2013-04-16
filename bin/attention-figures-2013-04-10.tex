@@ -55,16 +55,17 @@ Mean squared error averaged over all testing data versus (constant) precision (i
 \includegraphics[scale=0.7]{{error-vs-prec-ss5-iters400-eta4.0}.pdf}
 \includegraphics[scale=0.7]{error-vs-prec-ss10}
 \includegraphics[scale=0.7]{error-vs-prec-ss15}
+\includegraphics[scale=0.7]{error-vs-prec-ss20}
 \end{center}
 
-Same as above except: $\eta = 1.0$, 1 iteration over training data.
+Same as above except: $\eta = 1.0$, 100 iterations over training data.
 \begin{center}
 \includegraphics[scale=0.7]{{error-vs-prec-ss5-iters100-eta1.0}.pdf}
 \includegraphics[scale=0.7]{{error-vs-prec-ss10-iters100-eta1.0}.pdf}
 \includegraphics[scale=0.7]{{error-vs-prec-ss15-iters100-eta1.0}.pdf}
 \end{center}
 
-Same as above except: $\eta = 1.0$, 1 iteration over training data.
+Same as above except: $\eta = 1.0$, 1 iteration over training data. Error decreases as set size increases -- likely because size of training set increases with set size -- need to try with equal number of training(/testing?) samples (add command line params)
 \begin{center}
 \includegraphics[scale=0.7]{{error-vs-prec-ss5-iters1-eta1.0}.pdf}
 \includegraphics[scale=0.7]{{error-vs-prec-ss10-iters1-eta1.0}.pdf}
