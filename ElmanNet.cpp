@@ -20,7 +20,7 @@ ElmanNet::ElmanNet(int numInput, int numHidden, int numOutput, unsigned long ini
 /* Trains network on given input and output data for specified
  * number of iterations. Returns an array containing error
  * measured at each iteration */
-MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose){
+MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose){
 	int i, r;
 	MPVector input, output, error;
 	for(i = 0; i < iters; ++i){
@@ -30,12 +30,12 @@ MPMatrix ElmanNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &e
 		input = MPVector(inputs.row(r));
 		output = MPVector(desiredOutputs.row(r));
 		error = MPVector(errors.row(i));
-		errors.row(i) << train(input, output, error, eta, verbose).transpose();
+		errors.row(i) << train(input, output, error, eta, squareError, verbose).transpose();
 	}
 	return errors;
 }
 
-MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose){
+MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose){
 	//int j;
 	MPVector hidOuts(this->numOutput);
 	MPVector outputs(this->numOutput);
@@ -85,7 +85,10 @@ MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &
 
 		/* Record squared error */
 		//cout << "Recording error" << endl;
-		error << outErrors.matrix().dot(outErrors.matrix());
+		if(squareError)
+			error << outErrors.matrix().dot(outErrors.matrix());
+		else
+			error << outErrors;
 	//}
 	return error;
 }

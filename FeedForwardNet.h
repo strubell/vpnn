@@ -22,8 +22,8 @@ public:
 	/* Trains network on given input and output data for specified
 	 * number of iterations. Returns an array containing error
 	 * measured at each iteration */
-	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose);
-	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose);
+	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose);
+	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose);
 
 
 	/* Tests network on given input and output data; Returns

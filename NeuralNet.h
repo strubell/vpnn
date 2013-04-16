@@ -29,8 +29,8 @@ protected:
 public:
 	NeuralNet(int numInput, int numHidden, int numOutput, unsigned long initialPrecision, mpreal errorTol);
 
-	virtual MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose) = 0;
-	virtual MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose) = 0;
+	virtual MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose) = 0;
+	virtual MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose) = 0;
 	virtual MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose) = 0;
 
 	void setPrecision(unsigned long prec);

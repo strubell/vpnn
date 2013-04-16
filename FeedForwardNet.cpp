@@ -21,7 +21,7 @@ FeedForwardNet::FeedForwardNet(int numInput, int numHidden, int numOutput, unsig
 /* Trains network on given input and output data for specified
  * number of iterations. Returns an array containing error
  * measured at each iteration */
-MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, mpreal eta, int iters, int verbose){
+MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose){
 	int i, r;
 	MPVector input(this->numInput);
 	MPVector desiredOut(this->numOutput);
@@ -34,12 +34,12 @@ MPMatrix FeedForwardNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMat
 		input = inputs.row(r);
 		desiredOut = desiredOutputs.row(r);
 		error = errors.row(i);
-		errors.row(i) << train(input, desiredOut, error, eta, verbose).transpose();
+		errors.row(i) << train(input, desiredOut, error, eta, squareError, verbose).transpose();
 	}
 	return errors;
 }
 
-MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int verbose){
+MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose){
 	int i;
 	MPVector hidOuts(this->numOutput);
 	MPVector outputs(this->numOutput);
@@ -66,7 +66,7 @@ MPVector FeedForwardNet::train(MPVector &input, MPVector &desiredOutput, MPVecto
 
 	/* Record squared error */
 	for(i = 0; i < this->numOutput; i++){
-		error(i) = outErrors(i)*outErrors(i);
+		error(i) = squareError? outErrors(i)*outErrors(i) : outErrors(i);
 	}
 	return error;
 }

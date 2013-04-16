@@ -9,38 +9,75 @@
 
 #define INT_BITS 32
 
+#define DEFAULT_PRECISION 32
+#define DEFAULT_ETA 1.0
+#define DEFAULT_SETSIZE 10
+#define DEFAULT_VERBOSITY 0
+#define DEFAULT_ITERS 100
+#define MAX_CONSTANTS 3
+
 /* Convert an integer to an array of integers representing its bits */
 int *intToBinary(int a, int *buff);
 
 /* Test feed forward network (XOR) */
-void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbose);
+void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int squareError, int verbose);
 
 /* Test Elman network (couple of sequences) */
-void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose);
+void testElmanNet(unsigned long prec, std::ostream &outputFile, int squareError, int verbose);
 
-void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile, int verbose);
+void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int iters, double etaVal, int squareError, std::ostream &outputFile, int verbose);
 
 int main(int argc, char **argv){
-	int c;
-	int verbose = 0;
-	int setSize = 10;
-	unsigned long precision = 32;
+	int c, index;
+	int verbose = DEFAULT_VERBOSITY;
+	int setSize = DEFAULT_SETSIZE;
+	int trainingIters = DEFAULT_ITERS;
+	double eta = DEFAULT_ETA;
+	unsigned long precision = DEFAULT_PRECISION;
+	int squareError = 0;
+	int constCount = 0;
+	char *next;
+	MPVector constants(MAX_CONSTANTS);
 	std::streambuf * buf = std::cout.rdbuf();
 	std::ofstream of;
 	
-	while((c = getopt(argc, argv, "p:o:s:v")) != -1){
+	while((c = getopt(argc, argv, "p:o:s:l:i:k:v")) != -1){
 		switch(c){
+		case 'k':
+			index = optind - 1;
+            while(index < argc){
+                next = strdup(argv[index]);
+                index++;
+                if(next[0] != '-'){
+                    constants(constCount++) = atof(next);
+                }
+                else break;
+            }
+            optind = index - 1;
+			break;
 		case 'p':
+			// set initial precision
 			precision = atol(optarg);
 			break;
 		case 'o':
+			// set output file
 			of.open(optarg);
 			buf = of.rdbuf();
 			break;
 		case 's':
+			// set set size
 			setSize = atoi(optarg);
 			break;
+		case 'l':
+			// learning rate eta
+			eta = atoi(optarg);
+			break;
+		case 'i':
+			// set number of training iterations
+			trainingIters = atoi(optarg);
+			break;
 		case 'v':
+			// verbosity
 			verbose = 1;
 			break;
 		default:
@@ -54,12 +91,12 @@ int main(int argc, char **argv){
 
 	//testFeedForwardNet();
 	//testElmanNet();
-	testAttentionNet(precision, setSize, outputFile, verbose);
+	testAttentionNet(constants, precision, setSize, trainingIters, eta, squareError, outputFile, verbose);
 
 	return 0;
 }
 
-void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbose){
+void testFeedForwardNet(MPVector constants, unsigned long prec, std::ostream &outputFile, int squareError, int verbose){
 	int i, j;
 
 	/* Set up initial precision */
@@ -117,7 +154,7 @@ void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbos
 
 	/* Train network on training data */
 	FeedForwardNet ffNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol);
-	ffNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
+	ffNet.train(trainingIn, trainingOut, trainingErr, constants, eta, numIterations, squareError, verbose);
 
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
@@ -127,7 +164,7 @@ void testFeedForwardNet(unsigned long prec, std::ostream &outputFile, int verbos
 	ffNet.test(testingIn, testingOut, testingErr, verbose);
 }
 
-void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose){
+void testElmanNet(MPVector constants, unsigned long prec, std::ostream &outputFile, int squareError, int verbose){
 	int i, j;
 
 	/* Set up initial precision */
@@ -178,7 +215,7 @@ void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose){
 
 	/* Train network on training data */
 	ElmanNet elNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol);
-	elNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
+	elNet.train(trainingIn, trainingOut, trainingErr, constants, eta, numIterations, squareError, verbose);
 
 	for(i = 0; i < numIterations; ++i){
 		std::cout << trainingErr(i,0) << "\n";
@@ -188,7 +225,7 @@ void testElmanNet(unsigned long prec, std::ostream &outputFile, int verbose){
 	elNet.test(testingIn, testingOut, testingErr, verbose);
 }
 
-void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile, int verbose){
+void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int iters, double etaVal, int squareError, std::ostream &outputFile, int verbose){
 	int i, j, r;
 	int buff[INT_BITS];
 
@@ -209,10 +246,10 @@ void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile,
 	int allDataLen = static_cast<int>(std::pow(2.0,sequenceLen));
 	int trainingDataLen = static_cast<int>(std::pow(2.0,sequenceLen-3)); // also sort of arbitrary
 	int testingDataLen = allDataLen - static_cast<int>(std::pow(2.0,sequenceLen-3));  // the rest
-	int numIterations = 500;			// also arbitrary
-	mpreal eta = 4.0;					// ...
-	mpreal errorTol = 1e-2;				// ...
-	mpreal desiredAccuracy = 0.8;		// ...
+	int numIterations = iters;			
+	mpreal eta = etaVal;				
+	mpreal errorTol = 1e-2;				
+	mpreal desiredAccuracy = 0.8;		
 
 	MPMatrix trainingIn(trainingDataLen, inputSize);
 	MPMatrix trainingOut(trainingDataLen, outputSize);
@@ -289,7 +326,7 @@ void testAttentionNet(unsigned long prec, int setSize, std::ostream &outputFile,
 
 	/* Train network on training data */
 	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy);
-	attentionNet.train(trainingIn, trainingOut, trainingErr, eta, numIterations, verbose);
+	attentionNet.train(trainingIn, trainingOut, trainingErr, constants, eta, numIterations, squareError, verbose);
 
 	/*
 	for(i = 0; i < numIterations; ++i){
