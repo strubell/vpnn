@@ -17,7 +17,7 @@ AttentionNet::AttentionNet(int numInput, int numHidden, int numOutput, unsigned 
 
 MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose){
 	int i, r;
-	mpreal k1, k2;
+	mpreal k1, k2, errval;
 	MPVector input, output, error;
 	k1 = constants(0);
 	k2 = constants(1);
@@ -29,7 +29,26 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 		output = MPVector(desiredOutputs.row(r));
 		error = MPVector(errors.row(i));
 		errors.row(i) << train(input, output, error, eta, squareError, verbose).transpose();
-		setPrecision(k1*this->currentPrecision + k2);
+		/*if(verbose){
+			cout << "Error: ";
+			printMPMatrix(errors.row(i));
+			cout << endl;
+		}*/
+		errval = errors(0);
+		
+		// TODO un-hard-code this! 
+		// (pass a pointer to a function that takes an MPVector of constants, 
+		// 		returns unsigned long = new precision value)
+		
+		/* multiplicative */
+		setPrecision(round(k1*errval*this->currentPrecision + k2).toULong());
+		
+		/* additive */
+		//setPrecision(round(this->currentPrecision + k1*errval).toULong());
+		
+		if(verbose){
+			cout << "Set network precision to " << this->currentPrecision << endl;
+		}
 	}
 	return errors;
 }

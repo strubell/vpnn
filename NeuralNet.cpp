@@ -19,9 +19,16 @@ NeuralNet::NeuralNet(int numInput, int numHidden, int numOutput, unsigned long i
 
 /* Set the bitwise precision to be used by the network */
 void NeuralNet::setPrecision(unsigned long prec){
-	this->currentPrecision = prec;
-	mpreal::set_default_prec(prec);
-	cout.precision(bits2digits(prec));
+	/* Check to make sure we're not trying to set precision below minimum (2) */
+	if(prec >= 2){
+		this->currentPrecision = prec;
+		mpreal::set_default_prec(prec);
+		cout.precision(bits2digits(prec));
+	}
+	else{
+		this->currentPrecision = 2;
+		cout << "Warning: tried to set precision below 2" << endl;
+	}
 }
 
 MPVector NeuralNet::sigmoid(MPVector vec){
