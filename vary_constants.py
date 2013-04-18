@@ -10,25 +10,27 @@ rc('text', usetex=True)
 data_fname = "bin/output"
 programName = "./bin/VPNNet-exp"
 
-verbose = True			# whether or not to print running solution
-TOL = finfo(float).eps 	# error tolerance (machine epsilon)
-
 setSize = 5
-minPrecision = 2
-maxPrecision = 16
-trainingIters = 1
+initialPrecision = 2
+trainingIters = 100
+interval = 1.0
+min_k1 = 1.0
+max_k1 = 10.0
+min_k2 = min_k1
+max_k2 = max_k1
 eta = 1.0
-numValues = maxPrecision-minPrecision
 
-precisions = arange(minPrecision, maxPrecision+1)
-accuracies = zeros(len(precisions))
+k1_vals = linspace(min_k1, max_k1, (min_k1+max_k1)/interval)
+k2_vals = linspace(min_k2, max_k2, (min_k2+max_k2)/interval)
+iteration = arange(trainingIters)
+precisions = empty(trainingIters)
+errors = empty(trainingIters)
 
-#for i,line in enumerate(open(data_fname, 'r')):
-#	prec[i], accuracy[i] = line.split(" ")
-for idx,prec in enumerate(precisions):
-	# run experiment with precision = prec >> data_fname
-	print "Running experiment with precision", prec
-	subprocess.call([programName, "-p", str(prec), "-s", str(setSize), "-i", str(trainingIters), "-l", str(eta), "-o", data_fname])
+for i,k1 in enumerate(k1_vals):
+	for j,k2 in enumerate(k2_vals):
+	# run experiment with constants k1, k2
+	print "Running experiment with k1 = %g, k2 = %g" % (k1, k2)
+	subprocess.call([programName, "-p", str(initialPrecision), "-s", str(setSize), "-i", str(trainingIters), "-l", str(eta), "-k", k1, k2, "-o", data_fname])
 	numVals = 0.0
 	for line in open(data_fname, 'r'):
 		accuracies[idx] += float(line)
@@ -37,10 +39,10 @@ for idx,prec in enumerate(precisions):
 
 fig = plt.figure()
 ax = fig.gca()
-ax.plot(precisions, accuracies, color="black")
+ax.plot(iteration, error, color="black")
 #ax.set_yscale("log")
-ax.set_ylabel("Mean Squared Error")
-ax.set_xlabel("Precision (bits)")
+ax.set_ylabel("Training Squared Error")
+ax.set_xlabel("Iteration")
 ax.set_title("Error vs. (Constant) Precision (set size = %d)" % (setSize))
 
 #plt.legend(["min = %f" % (r_min1), "min = %f" % (r_min2), "min = %f" % (r_min3)], shadow=True)
