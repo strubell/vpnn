@@ -352,7 +352,7 @@ void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int i
 	
 	for(i = 0; i < numIterations; ++i){
 		//outputFile << testingErr(i) << std::endl;
-		std::cout << trainingErr(i,0) << " " << trainingErr(i,1) << std::endl;
+		outputFile << trainingErr(i,0) << " " << trainingErr(i,1) << std::endl;
 	}
 }
 

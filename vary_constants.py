@@ -11,18 +11,18 @@ rc('text', usetex=True)
 data_fname = "bin/output"
 programName = "./bin/VPNNet-exp"
 
-setSize = 5
-initialPrecision = 16
-trainingIters = 100
+setSize = 10
+initialPrecision = 4
+trainingIters = 200
 interval = 1.0
-min_k1 = 1.0
-max_k1 = 2.0
+min_k1 = 0.0
+max_k1 = 10.0
 min_k2 = min_k1
 max_k2 = max_k1
 eta = 1.0
 
-num_k1_vals = (min_k1+max_k1-1)/interval
-num_k2_vals = (min_k2+max_k2-1)/interval
+num_k1_vals = (min_k1+max_k1)/interval
+num_k2_vals = (min_k2+max_k2)/interval
 
 k1_vals = linspace(min_k1, max_k1, num_k1_vals)
 k2_vals = linspace(min_k2, max_k2, num_k2_vals)
@@ -39,15 +39,11 @@ for i,k1 in enumerate(k1_vals):
 		# writes precision followed by error per line
 		for k,line in enumerate(open(data_fname, 'r')):
 			err, prec = line.split(" ")
-			#print "%s = %f" % (err, float(err))
-			precisions[i,j,k] = float(prec)
+			precisions[i,j,k] = long(prec)
 			errors[i,j,k] = float(err)
 
 fig = plt.figure()
 ax = fig.gca()
-
-print errors[0,0]
-print precisions[0,0]
 
 # Create a set of line segments so that we can color them individually
 # This creates the points as a N x 1 x 2 array so that we can stack points
@@ -57,19 +53,28 @@ for i in range(int(num_k1_vals)):
 	for j in range(int(num_k2_vals)):
 		points = array([iterations, errors[i,j]]).T.reshape(-1, 1, 2)
 		segments = concatenate([points[:-1], points[1:]], axis=1)
-		
+ 		
 		# Create the line collection object, setting the colormapping parameters.
 		# Have to set the actual values used for colormapping separately.
-		lc = LineCollection(segments, cmap=plt.get_cmap('rainbow'), norm=plt.Normalize(0, 10))
+		lc = LineCollection(segments, cmap=plt.get_cmap('rainbow'))#, norm=plt.Normalize(0, 10))
 		lc.set_array(precisions[i,j])
-		lc.set_linewidth(3)
+		lc.set_linewidth(1)
+ 
+		ax.add_collection(lc)
 
-		plt.gca().add_collection(lc)
+# for i in range(int(num_k1_vals)):
+#  	for j in range(int(num_k2_vals)):
+#  		ax.plot(iterations,errors[i,j])
 
 #ax.set_yscale("log")
 ax.set_ylabel("Training Error")
 ax.set_xlabel("Iteration")
 ax.set_title("$\Delta$ Training Error, Precision over Time ($s$ = %d, $\eta$ = %f)" % (setSize, eta))
+#ax.set_ylim([amin(errors), amax(errors)])
+ax.set_ylim([-1.0, 1.0])
+ax.set_xlim([0.0,trainingIters])
+cb = plt.colorbar(lc)
+cb.set_label("Precision (bits)")
 
 #plt.legend(["min = %f" % (r_min1), "min = %f" % (r_min2), "min = %f" % (r_min3)], shadow=True)
 #plt.xlim((r_low,r_high-r_int))
