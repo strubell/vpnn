@@ -34,7 +34,7 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 			printMPMatrix(errors.row(i));
 			cout << endl;
 		}*/
-		errval = errors(0);
+		errval = errors(i,0);
 		
 		// TODO un-hard-code this! 
 		// (pass a pointer to a function that takes an MPVector of constants, 
@@ -49,6 +49,10 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 		if(verbose){
 			cout << "Set network precision to " << this->currentPrecision << endl;
 		}
+		//cout << this->currentPrecision << " " << errval << endl;
+		
+		// TODO clean this up -- also throw new precision in with error return value
+		errors(i,1) = this->currentPrecision;
 	}
 	return errors;
 }

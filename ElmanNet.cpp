@@ -86,9 +86,9 @@ MPVector ElmanNet::train(MPVector &inputVal, MPVector &desiredOutput, MPVector &
 		/* Record squared error */
 		//cout << "Recording error" << endl;
 		if(squareError)
-			error << outErrors.matrix().dot(outErrors.matrix());
+			error << outErrors.matrix().dot(outErrors.matrix()), 0;
 		else
-			error << outErrors;
+			error << outErrors, 0;
 	//}
 	return error;
 }

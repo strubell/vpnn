@@ -27,7 +27,7 @@ void NeuralNet::setPrecision(unsigned long prec){
 	}
 	else{
 		this->currentPrecision = 2;
-		cout << "Warning: tried to set precision below 2" << endl;
+		//cout << "Warning: tried to set precision below 2" << endl;
 	}
 }
 

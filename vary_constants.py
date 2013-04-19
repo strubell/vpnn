@@ -1,6 +1,7 @@
 from numpy import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from matplotlib.collections import LineCollection
 import subprocess
 
 # configure/use LaTeX for plot fonts
@@ -11,45 +12,70 @@ data_fname = "bin/output"
 programName = "./bin/VPNNet-exp"
 
 setSize = 5
-initialPrecision = 2
+initialPrecision = 16
 trainingIters = 100
 interval = 1.0
 min_k1 = 1.0
-max_k1 = 10.0
+max_k1 = 2.0
 min_k2 = min_k1
 max_k2 = max_k1
 eta = 1.0
 
-k1_vals = linspace(min_k1, max_k1, (min_k1+max_k1)/interval)
-k2_vals = linspace(min_k2, max_k2, (min_k2+max_k2)/interval)
-iteration = arange(trainingIters)
-precisions = empty(trainingIters)
-errors = empty(trainingIters)
+num_k1_vals = (min_k1+max_k1-1)/interval
+num_k2_vals = (min_k2+max_k2-1)/interval
+
+k1_vals = linspace(min_k1, max_k1, num_k1_vals)
+k2_vals = linspace(min_k2, max_k2, num_k2_vals)
+iterations = arange(trainingIters)
+precisions = empty((num_k1_vals,num_k2_vals,trainingIters))
+errors = empty((num_k1_vals,num_k2_vals,trainingIters))
 
 for i,k1 in enumerate(k1_vals):
 	for j,k2 in enumerate(k2_vals):
-	# run experiment with constants k1, k2
-	print "Running experiment with k1 = %g, k2 = %g" % (k1, k2)
-	subprocess.call([programName, "-p", str(initialPrecision), "-s", str(setSize), "-i", str(trainingIters), "-l", str(eta), "-k", k1, k2, "-o", data_fname])
-	numVals = 0.0
-	for line in open(data_fname, 'r'):
-		accuracies[idx] += float(line)
-		numVals += 1.0
-	accuracies[idx] /= numVals	# mean accuracy for precision prec
+		# run experiment with constants k1, k2
+		print "Running experiment with k1 = %g, k2 = %g" % (k1, k2)
+		subprocess.call([programName, "-p", str(initialPrecision), "-s", str(setSize), "-i", str(trainingIters), "-l", str(eta), "-k", str(k1), str(k2), "-o", data_fname])
+		numVals = 0.0
+		# writes precision followed by error per line
+		for k,line in enumerate(open(data_fname, 'r')):
+			err, prec = line.split(" ")
+			#print "%s = %f" % (err, float(err))
+			precisions[i,j,k] = float(prec)
+			errors[i,j,k] = float(err)
 
 fig = plt.figure()
 ax = fig.gca()
-ax.plot(iteration, error, color="black")
+
+print errors[0,0]
+print precisions[0,0]
+
+# Create a set of line segments so that we can color them individually
+# This creates the points as a N x 1 x 2 array so that we can stack points
+# together easily to get the segments. The segments array for line collection
+# needs to be numlines x points per line x 2 (x and y)
+for i in range(int(num_k1_vals)):
+	for j in range(int(num_k2_vals)):
+		points = array([iterations, errors[i,j]]).T.reshape(-1, 1, 2)
+		segments = concatenate([points[:-1], points[1:]], axis=1)
+		
+		# Create the line collection object, setting the colormapping parameters.
+		# Have to set the actual values used for colormapping separately.
+		lc = LineCollection(segments, cmap=plt.get_cmap('rainbow'), norm=plt.Normalize(0, 10))
+		lc.set_array(precisions[i,j])
+		lc.set_linewidth(3)
+
+		plt.gca().add_collection(lc)
+
 #ax.set_yscale("log")
-ax.set_ylabel("Training Squared Error")
+ax.set_ylabel("Training Error")
 ax.set_xlabel("Iteration")
-ax.set_title("Error vs. (Constant) Precision (set size = %d)" % (setSize))
+ax.set_title("$\Delta$ Training Error, Precision over Time ($s$ = %d, $\eta$ = %f)" % (setSize, eta))
 
 #plt.legend(["min = %f" % (r_min1), "min = %f" % (r_min2), "min = %f" % (r_min3)], shadow=True)
 #plt.xlim((r_low,r_high-r_int))
 
 saveFormat = "pdf"
-saveName = "data/error-vs-prec-ss" + str(setSize) + "-iters" + str(trainingIters) + "-eta" + str(eta) + "." + saveFormat
+saveName = "data/error-prec-vs-time-ss" + str(setSize) + "-iters" + str(trainingIters) + "-eta" + str(eta) +  "-prec" + str(initialPrecision) + "." + saveFormat
 plt.savefig(saveName)
 plt.show()
 

@@ -253,7 +253,7 @@ void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int i
 
 	MPMatrix trainingIn(trainingDataLen, inputSize);
 	MPMatrix trainingOut(trainingDataLen, outputSize);
-	MPMatrix trainingErr(numIterations, outputSize);
+	MPMatrix trainingErr(numIterations, outputSize+1);  // for precision
 
 	MPMatrix testingIn(testingDataLen, inputSize);
 	MPMatrix testingOut(testingDataLen, outputSize);
@@ -350,8 +350,9 @@ void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int i
 	/* Test network on testing data */
 	attentionNet.test(testingIn, testingOut, testingErr, verbose);
 	
-	for(i = 0; i < testingDataLen; ++i){
-		outputFile << testingErr(i) << std::endl;
+	for(i = 0; i < numIterations; ++i){
+		//outputFile << testingErr(i) << std::endl;
+		std::cout << trainingErr(i,0) << " " << trainingErr(i,1) << std::endl;
 	}
 }
 
