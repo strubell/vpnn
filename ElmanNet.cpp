@@ -112,7 +112,7 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, i
 		//for(j = 0; j < inputs.cols(); ++j){
 			/* Convert input / desired output to unary vectors */
 
-			//TODO make sure this is also consistent with ElmanNet test in main
+			//TODO make this consistent with ElmanNet test in main
 			//input << contextUnits, MPRealToUnary(inputs(i,j), unaryInput);
 			//desiredOut << MPRealToUnary(outputs(i,j), unaryOutput);
 			//cout << "Setting up input/output" << endl;
@@ -159,6 +159,11 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, i
 	if(verbose)
 		cout << "Overall accuracy: " << (accuracy/(inputs.cols()*inputs.rows()))*100 << "%\n";
 	return errors;
+}
+
+/* Test on a single input/output pair */
+MPVector ElmanNet::test(MPVector &input, MPMatrix &output, MPVector &error){
+
 }
 
 MPVector &ElmanNet::MPRealToUnary(mpreal val, MPVector &arr){

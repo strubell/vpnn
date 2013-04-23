@@ -33,6 +33,7 @@ public:
 	virtual MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose) = 0;
 	virtual MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose) = 0;
 
+	void setPrecision(mpreal prec);
 	void setPrecision(unsigned long prec);
 	MPVector sigmoid(MPVector vec);
 	void printMPMatrix(MPMatrix m);

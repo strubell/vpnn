@@ -34,6 +34,9 @@ public:
 	 * an array containing errors */
 	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
 
+	/* Test on a single input/output pair */
+	MPVector test(MPVector &input, MPMatrix &output, MPVector &error);
+
 	~ElmanNet();
 };
 

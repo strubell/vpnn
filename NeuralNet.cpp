@@ -14,7 +14,7 @@ NeuralNet::NeuralNet(int numInput, int numHidden, int numOutput, unsigned long i
 	this->numHidden = numHidden;
 	this->numOutput = numOutput;
 	this->errorTol = errorTol;
-	setPrecision(initialPrecision);
+	this->setPrecision(initialPrecision);
 }
 
 /* Set the bitwise precision to be used by the network */
@@ -27,8 +27,12 @@ void NeuralNet::setPrecision(unsigned long prec){
 	}
 	else{
 		this->currentPrecision = 2;
-		//cout << "Warning: tried to set precision below 2" << endl;
+		cerr << "Warning: tried to set precision below 2" << endl;
 	}
+}
+
+void NeuralNet::setPrecision(mpreal prec){
+	this->setPrecision(round(prec).toULong());
 }
 
 MPVector NeuralNet::sigmoid(MPVector vec){

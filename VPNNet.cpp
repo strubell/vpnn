@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 	int trainingIters = DEFAULT_ITERS;
 	double eta = DEFAULT_ETA;
 	unsigned long precision = DEFAULT_PRECISION;
-	int squareError = 0;
+	int squareError = 1;
 	int constCount = 0;
 	char *next;
 	MPVector constants(MAX_CONSTANTS);

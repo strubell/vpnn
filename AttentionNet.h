@@ -22,8 +22,10 @@ typedef Array<mpreal,Dynamic,1> MPVector;
 class AttentionNet: public ElmanNet{
 private:
 	mpreal desiredAccuracy;
+	MPVector accuracies;
+	int accuraciesIdx;
 public:
-	AttentionNet(int numInput, int numHidden, int numOutput, unsigned long initialPrecision, mpreal errorTol, mpreal desiredAccuracy);
+	AttentionNet(int numInput, int numHidden, int numOutput, unsigned long initialPrecision, mpreal errorTol, mpreal desiredAccuracy, int accuracyMemLen);
 
 	MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose);
 	MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose);
@@ -31,6 +33,12 @@ public:
 	/* Tests network on given input and output data; Returns
 	 * an array containing errors */
 	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
+
+	/* Test on a single input/output pair */
+	MPVector test(MPVector &input, MPMatrix &output, MPVector &error);
+
+	void recordAccuracy(MPVector &in, MPVector &out);
+	mpreal currentAccuracy();
 
 	~AttentionNet();
 };
