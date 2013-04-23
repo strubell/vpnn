@@ -32,6 +32,7 @@ public:
 	virtual MPMatrix train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatrix &errors, MPVector &constants, mpreal eta, int iters, int squareError, int verbose) = 0;
 	virtual MPVector train(MPVector &input, MPVector &desiredOutput, MPVector &error, mpreal eta, int squareError, int verbose) = 0;
 	virtual MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose) = 0;
+	virtual mpreal test(MPVector &inputs, MPVector &outputs, mpreal error, int verbose) = 0;
 
 	void setPrecision(mpreal prec);
 	void setPrecision(unsigned long prec);

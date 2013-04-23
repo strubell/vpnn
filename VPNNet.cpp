@@ -247,6 +247,7 @@ void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int i
 	int trainingDataLen = static_cast<int>(std::pow(2.0,sequenceLen-3)); // also sort of arbitrary
 	int testingDataLen = allDataLen - static_cast<int>(std::pow(2.0,sequenceLen-3));  // the rest
 	int numIterations = iters;			
+	int accuracyMemLen = 3;
 	mpreal eta = etaVal;				
 	mpreal errorTol = 1e-2;				
 	mpreal desiredAccuracy = 0.8;		
@@ -325,7 +326,7 @@ void testAttentionNet(MPVector constants, unsigned long prec, int setSize, int i
 
 
 	/* Train network on training data */
-	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy);
+	AttentionNet attentionNet(inputSize, hiddenSize, outputSize, initialPrecision, errorTol, desiredAccuracy, accuracyMemLen);
 	attentionNet.train(trainingIn, trainingOut, trainingErr, constants, eta, numIterations, squareError, verbose);
 
 	/*

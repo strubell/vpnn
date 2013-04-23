@@ -13,7 +13,7 @@ using namespace std;
 AttentionNet::AttentionNet(int numInput, int numHidden, int numOutput, unsigned long initialPrecision, mpreal errorTol, mpreal desiredAccuracy, int accuracyMemLen)
 	: ElmanNet(numInput, numHidden, numOutput, initialPrecision, errorTol){
 	this->desiredAccuracy = desiredAccuracy;
-	this->accuracies(accuracyMemLen);
+	this->accuracies = MPVector::Constant(accuracyMemLen, -1.0);
 	this->accuraciesIdx = 0;
 }
 
@@ -41,26 +41,29 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 		errval = errors(i,0);
 		
 		/* Record accuracy for this input/output val */
-		this->recordAccuracy(input, output);
+		this->recordAccuracy(input, output, verbose);
 
 		// whether to increase or decrease precision; increase if accuracy
 		// above desired, decrease if below
 		// assumes squared (or otherwise always-positive) error
-		direction = this->currentAccuracy() > desiredAccuracy? -1.0 : 1.0;
+		// only change accuracy if currentAccuracy vector is full (have enough measurements?)
+		//if(this->currentAccuracy() > 0){
+			direction = this->currentAccuracy() > desiredAccuracy? -1.0 : 1.0;
 
-		// TODO un-hard-code this! 
-		// (pass a pointer to a function that takes an MPVector of constants, 
-		// 		returns unsigned long = new precision value)
-		
-		/* multiplicative */
-		setPrecision(k1*direction*errval*this->currentPrecision + k2);
-		
-		/* additive */
-		//setPrecision(this->currentPrecision + k1*direction*errval);
-		
-		if(verbose){
-			cout << "Set network precision to " << this->currentPrecision << endl;
-		}
+			// TODO un-hard-code this! 
+			// (pass a pointer to a function that takes an MPVector of constants, 
+			// 		returns unsigned long = new precision value)
+			
+			/* multiplicative */
+			setPrecision(k1*direction*errval*this->currentPrecision + k2);
+			
+			/* additive */
+			//setPrecision(this->currentPrecision + k1*direction*errval);
+			
+			if(verbose){
+				cout << "Set network precision to " << this->currentPrecision << endl;
+			}
+		//}
 		//cout << this->currentPrecision << " " << errval << endl;
 		
 		// TODO clean this up -- also throw new precision in with error return value
@@ -78,30 +81,36 @@ MPMatrix AttentionNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &error
 	return ElmanNet::test(inputs, outputs, errors, verbose);
 }
 
-MPVector AttentionNet::test(MPVector &input, MPMatrix &output, MPVector &error){
-	return ElmanNet::test(input, output, error);
+mpreal AttentionNet::test(MPVector &input, MPVector &output, mpreal error, int verbose){
+	return ElmanNet::test(input, output, error, verbose);
 }
 
-void AttentionNet::recordAccuracy(MPVector &in, MPVector &out){
-	MPVector err(out.size());
+void AttentionNet::recordAccuracy(MPVector &in, MPVector &out, int verbose){
+	mpreal err;
 
 	/* Compute accuracy of net on given input/output pair */
-	this->test(in, out, err);
+	this->test(in, out, err, verbose);
 
 	/* Save as binary value based on errorTol */
-	accuracies(accuraciesIdx) = err < this->errorTol? 1.0: 0.0;
+	//TODO why doesn't the ternary operator work here????
+	//~ if(err.mean() < this->errorTol){
+		//~ accuracies(accuraciesIdx) = 1.0;
+	//~ }
+	//~ else{
+		//~ accuracies(accuraciesIdx) = 0.0;
+	//~ }
+	accuracies(accuraciesIdx) = (err < this->errorTol)? 1.0: 0.0;
+	
 
 	/* Increment index into accuracies vector */
 	accuraciesIdx = (accuraciesIdx+1) % accuracies.size();
 }
 
 mpreal AttentionNet::currentAccuracy(){
-	if((accuracies > 0).all()){
-		/* Compute accuracy of last accuracyMemLen iterations */
-		return accuracies.sum()/accuracies.size();
-	}
-	/* Haven't performed enough iterations yet */
-	return -1;
+	//if((accuracies > 0).all()){
+		/* Compute accuracy of last accuracyMemLen iterations, or last number
+		 * recorded if less than that */
+		return (accuracies > 0).mean();
 }
 
 AttentionNet::~AttentionNet() {

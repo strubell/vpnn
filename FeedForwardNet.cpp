@@ -119,6 +119,36 @@ MPMatrix FeedForwardNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &err
 	return errors;
 }
 
+mpreal FeedForwardNet::test(MPVector &input, MPVector &output, mpreal error, int verbose){
+	MPVector hidOuts(this->numOutput);
+	MPVector outs(this->numOutput);
+	MPVector outErrors(this->numOutput);
+
+	/* Forward propagation */
+	hidOuts = (this->hiddenWeights.rowwise()*input.transpose()).rowwise().sum();
+	hidOuts = sigmoid(hidOuts);
+	outs = this->outputWeights.matrix()*hidOuts.matrix();
+	outs = sigmoid(outs);
+
+	/* Determine errors */
+	outErrors = output - outs;
+
+	if(verbose){
+		cout << "Inputs: " << endl;
+		printMPMatrix(input.transpose());
+
+		cout << "Outputs: " << endl;
+		printMPMatrix(outs.transpose());
+
+		cout << "Desired: " << endl;
+		printMPMatrix(output.transpose());
+	}
+
+	/* Record squared error */
+	error = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
+	return error;
+}
+
 /* Destructor */
 FeedForwardNet::~FeedForwardNet() {
 	// TODO nothing to do here?

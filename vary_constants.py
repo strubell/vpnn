@@ -12,17 +12,17 @@ data_fname = "bin/output"
 programName = "./bin/VPNNet-exp"
 
 setSize = 10
-initialPrecision = 10
+initialPrecision = 4
 trainingIters = 125
-min_k1 = 1.0
-max_k1 = 0.0
-min_k2 = 1.0 #min_k1
+min_k1 = 0.0
+max_k1 = 10.0
+min_k2 = min_k1
 max_k2 = max_k1
 interval = 1.0
 eta = 5.0
 
 vary_precision = True
-vary_constants = False
+vary_constants = True
 
 if not vary_constants: 
 	if vary_precision:
@@ -78,11 +78,11 @@ for i in range(int(num_k1_vals)):
 #  		ax.plot(iterations,errors[i,j])
 
 #ax.set_yscale("log")
-ax.set_ylabel("Training Error")
+ax.set_ylabel("Training Error (Squared)")
 ax.set_xlabel("Iteration")
 ax.set_title("$\Delta$ Training Error, Precision over Time ($s$ = %d, $\eta$ = %g, $p$ = %g)" % (setSize, eta, initialPrecision))
 #ax.set_ylim([amin(errors), amax(errors)])
-ax.set_ylim([-1.0, 1.0])
+ax.set_ylim([0.0, 1.0])
 ax.set_xlim([0.0,trainingIters])
 
 # don't bother making color bar if not changing precision

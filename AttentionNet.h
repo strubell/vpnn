@@ -35,9 +35,9 @@ public:
 	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
 
 	/* Test on a single input/output pair */
-	MPVector test(MPVector &input, MPMatrix &output, MPVector &error);
+	mpreal test(MPVector &input, MPVector &output, mpreal error, int verbose);
 
-	void recordAccuracy(MPVector &in, MPVector &out);
+	void recordAccuracy(MPVector &in, MPVector &out, int verbose);
 	mpreal currentAccuracy();
 
 	~AttentionNet();

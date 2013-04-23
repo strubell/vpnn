@@ -115,8 +115,6 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, i
 			//TODO make this consistent with ElmanNet test in main
 			//input << contextUnits, MPRealToUnary(inputs(i,j), unaryInput);
 			//desiredOut << MPRealToUnary(outputs(i,j), unaryOutput);
-			//cout << "Setting up input/output" << endl;
-			//cout << input.size() << "=" << contextUnits.size() << "+" << inputs.row(i).size() << endl;
 			MPVector temp = inputs.row(i);
 			input << contextUnits, temp;
 			desiredOut << outputs.row(i);
@@ -162,8 +160,45 @@ MPMatrix ElmanNet::test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, i
 }
 
 /* Test on a single input/output pair */
-MPVector ElmanNet::test(MPVector &input, MPMatrix &output, MPVector &error){
+mpreal ElmanNet::test(MPVector &input, MPVector &output, mpreal error, int verbose){
+	
+	MPVector contextUnits(this->numHidden);
+	MPVector hidOuts(this->numOutput);
+	MPVector outs(this->numOutput);
+	MPVector outErrors(this->numOutput);
+	MPVector conInput(this->numInput + this->numHidden);
 
+	contextUnits = MPVector::Constant(this->numHidden, 0.5);
+	
+	conInput << contextUnits, input;
+
+	/* Forward propagation */
+	//cout << "Forward propagation" << endl;
+	hidOuts = (this->hiddenWeights.rowwise()*conInput.transpose()).rowwise().sum();
+	hidOuts = sigmoid(hidOuts);
+	outs = this->outputWeights.matrix()*hidOuts.matrix();
+	outs = sigmoid(outs);
+
+	/* Determine errors */
+	outErrors = output - outs;
+
+	/* Update context units */
+	contextUnits = hidOuts;
+
+	if(verbose){
+		cout << "Inputs: " << endl;
+		printMPMatrix(input.transpose());
+
+		cout << "Outputs: " << endl;
+		printMPMatrix(outs.transpose());
+
+		cout << "Desired: " << endl;
+		printMPMatrix(output.transpose());
+	}
+
+	/* Record mean squared error */
+	error = outErrors.matrix().dot(outErrors.matrix())/outErrors.rows();
+	return error;
 }
 
 MPVector &ElmanNet::MPRealToUnary(mpreal val, MPVector &arr){

@@ -29,6 +29,8 @@ public:
 	/* Tests network on given input and output data; Returns
 	 * an array containing errors */
 	MPMatrix test(MPMatrix &inputs, MPMatrix &outputs, MPMatrix &errors, int verbose);
+	
+	mpreal test(MPVector &input, MPVector &output, mpreal error, int verbose);
 
 	/* Destructor */
 	~FeedForwardNet();
