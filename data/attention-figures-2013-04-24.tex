@@ -1,0 +1,77 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{chngpage}
+\usepackage[protrusion=true,expansion,kerning]{microtype}
+\usepackage[lofdepth,lotdepth]{subfig}
+\usepackage{url}
+\usepackage{algpseudocode}
+\usepackage{comment}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usepackage[color=yellow!20]{todonotes}
+
+\usepackage[absolute,overlay]{textpos}
+  \setlength{\TPHorizModule}{1mm}
+  \setlength{\TPVertModule}{1mm}
+
+% adjust margins:
+\topmargin=-0.25in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=8.5in
+\headsep=0.25in
+
+% document-specific information
+\newcommand{\docTitle}{Attention Plots}
+\newcommand{\docSubTitle}{}
+\newcommand{\docDate}{April 24, 2013}
+\newcommand{\docClass}{}
+\newcommand{\docInstructor}{}
+\newcommand{\authorName}{}
+
+% header and footer
+\pagestyle{fancy}
+\lhead{\docTitle}
+\chead{}
+\rhead{\docDate}   
+\lfoot{}
+\cfoot{}
+\rfoot{\emph{Page\ \thepage\ of\ \pageref{LastPage}}}                          
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\renewcommand{\labelenumiii}{\arabic{enumiii}.}
+\renewcommand{\labelenumiv}{\arabic{enumiv}.}
+
+\begin{document}
+Mean squared testing error averaged over all testing data versus (constant) precision (in bits) of the network. Error is on a log scale. For a given set size $s$, network is trained on $2^{s-3}$ of the $2^s$ possible inputs (selected at random); tested on the remaining inputs. Learning rate $\eta=4.0$, 400 iterations over training data. The first bit of each input represents the distance (bit in the string) that should be attended to (all 0 in these experiments). Hidden layer contains 20 neurons.
+\begin{center}
+\includegraphics[scale=0.7]{{error-vs-prec-ss5-iters400-eta5.0}.pdf}
+\includegraphics[scale=0.7]{{error-vs-prec-ss10-iters400-eta5.0}.pdf}
+\includegraphics[scale=0.7]{{error-vs-prec-ss15-iters400-eta5.0}.pdf}
+\end{center}
+
+Squared training error over time (iterations, where each iteration trains on all input samples), where the color of the plot corresponds to precision; hotter colors are higher precision. Initial precision $p = 8$, learning rate $\eta = 5.0$, 150 iterations performed over training data. Precision is changed as follows: $p^+ = k_1dep+k_2$, $k_1,k_2$ are constants, $d$ is the direction in which we want precision to change (negative if accuracy, taken as the average over the last three iterations, is above the desired amount, positive otherwise), $e$ is the training error from the last iteration, and $p$ is the current network precision. Plots for a few combinations of $k_1,k_2$ shown.
+
+\begin{center}
+\includegraphics[scale=0.8]{{error-prec-vs-time-ss5-iters150-eta5.0-prec8/error-prec-vs-time-ss5-iters150-eta5.0-prec8-k15.0-k25.0}.pdf}
+\includegraphics[scale=0.8]{{error-prec-vs-time-ss10-iters150-eta5.0-prec8/error-prec-vs-time-ss10-iters150-eta5.0-prec8-k11.0-k29.1}.pdf}
+\includegraphics[scale=0.8]{{error-prec-vs-time-ss10-iters150-eta5.0-prec8/error-prec-vs-time-ss10-iters150-eta5.0-prec8-k110.0-k22.8}.pdf}
+\end{center}
+
+Squared training error over time (iterations, where each iteration trains on all input samples), where the color of the plot corresponds to precision; hotter colors are higher precision. Initial precision $p = 8$, learning rate $\eta = 5.0$, 150 iterations performed over training data. Precision is changed as follows: $p^+ =p+ k_1de$, $k_1$ a constant, $d$ is the direction in which we want precision to change (negative if accuracy, taken as the average over the last three iterations, is above the desired amount, positive otherwise), $e$ is the training error from the last iteration, and $p$ is the current network precision. Plots for a few values of $k_1$ shown.
+
+\begin{center}
+\includegraphics[scale=0.8]{{add-error-prec-vs-time-ss10-iters150-eta5.0-prec8/add-error-prec-vs-time-ss10-iters150-eta5.0-prec8-k11.0-k21.0}.pdf}
+\includegraphics[scale=0.8]{{add-error-prec-vs-time-ss10-iters150-eta5.0-prec8/add-error-prec-vs-time-ss10-iters150-eta5.0-prec8-k110.0-k210.0}.pdf}
+\end{center}
+
+
+
+\end{document}

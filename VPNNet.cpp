@@ -37,7 +37,7 @@ int main(int argc, char **argv){
 	int squareError = 1;
 	int constCount = 0;
 	char *next;
-	MPVector constants(MAX_CONSTANTS);
+	MPVector constants = MPVector::Zero(MAX_CONSTANTS);
 	std::streambuf * buf = std::cout.rdbuf();
 	std::ofstream of;
 	

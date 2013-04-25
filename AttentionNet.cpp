@@ -22,7 +22,7 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 	mpreal k1, k2, errval, direction;
 	MPVector input, output, error;
 	k1 = constants(0);
-	k2 = constants(1); // will probably want to comment this out if doing additive
+	k2 = constants(1);
 	for(i = 0; i < iters; ++i){
 		r = rand() % inputs.rows();	// select a random input to train on
 
@@ -46,8 +46,8 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 		// whether to increase or decrease precision; increase if accuracy
 		// above desired, decrease if below
 		// assumes squared (or otherwise always-positive) error
-		// only change accuracy if currentAccuracy vector is full (have enough measurements?)
-		//if(this->currentAccuracy() > 0){
+		// only change precision if constants is not all zero
+		if((constants != 0).any()){
 			direction = this->currentAccuracy() > desiredAccuracy? -1.0 : 1.0;
 
 			// TODO un-hard-code this! 
@@ -55,15 +55,15 @@ MPMatrix AttentionNet::train(MPMatrix &inputs, MPMatrix &desiredOutputs, MPMatri
 			// 		returns unsigned long = new precision value)
 			
 			/* multiplicative */
-			setPrecision(k1*direction*errval*this->currentPrecision + k2);
+			//setPrecision(k1*direction*errval*this->currentPrecision + k2);
 			
 			/* additive */
-			//setPrecision(this->currentPrecision + k1*direction*errval);
+			setPrecision(this->currentPrecision + k1*direction*errval);
 			
 			if(verbose){
 				cout << "Set network precision to " << this->currentPrecision << endl;
 			}
-		//}
+		}
 		//cout << this->currentPrecision << " " << errval << endl;
 		
 		// TODO clean this up -- also throw new precision in with error return value

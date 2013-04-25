@@ -13,11 +13,11 @@ programName = "./bin/VPNNet-exp"
 verbose = True			# whether or not to print running solution
 TOL = finfo(float).eps 	# error tolerance (machine epsilon)
 
-setSize = 5
+setSize = 15
 minPrecision = 2
 maxPrecision = 16
-trainingIters = 1
-eta = 1.0
+trainingIters = 400
+eta = 5.0
 numValues = maxPrecision-minPrecision
 
 precisions = arange(minPrecision, maxPrecision+1)
@@ -31,9 +31,11 @@ for idx,prec in enumerate(precisions):
 	subprocess.call([programName, "-p", str(prec), "-s", str(setSize), "-i", str(trainingIters), "-l", str(eta), "-o", data_fname])
 	numVals = 0.0
 	for line in open(data_fname, 'r'):
-		accuracies[idx] += float(line)
+		accuracies[idx] += float(line.split(" ")[0])
+		#print float(line.split(" ")[0])
 		numVals += 1.0
 	accuracies[idx] /= numVals	# mean accuracy for precision prec
+	print "Mean squared error:", accuracies[idx]
 
 fig = plt.figure()
 ax = fig.gca()
